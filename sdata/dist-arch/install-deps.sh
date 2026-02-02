@@ -84,10 +84,13 @@ install-local-pkgbuild() {
   local official_pkgs=()
   local aur_pkgs=()
   
+  # Refresh sudo timestamp once to avoid multiple password prompts
+  sudo -v
+  
   for pkg in "${depends[@]}"; do
     # Check if package exists in official repos
-    # Use pacman -Sp to check if package is available in sync repos
-    if sudo pacman -Sp --print-format '%n' "$pkg" &>/dev/null; then
+    # Use pacman -Si to check package info from sync database (more reliable than -Sp)
+    if pacman -Si "$pkg" &>/dev/null; then
       official_pkgs+=("$pkg")
     else
       aur_pkgs+=("$pkg")
