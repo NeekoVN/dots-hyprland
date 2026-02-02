@@ -19,5 +19,12 @@ The PKGBUILDs contains two forms of dependencies:
 - Package name written in dependencies, like a "meta" package.
 - Normal PKGBUILD content to build dependencies, e.g. AGS, which is often for version controlling.
 
+## Package Installation Priority
+To avoid conflicts with existing Hyprland installations and minimize AUR dependencies:
+- The installation script checks each dependency to determine if it's available in official Arch repositories
+- Official packages are installed via `pacman` (faster, more reliable)
+- AUR packages are installed via `yay` only when not available in official repos
+- This prevents installing `-git` versions from AUR when official stable versions exist
+
 ## Note
 - `pkgver()` should be removed from `PKGBUILD` cuz it will modify the `PKGBUILD` which is tracked by Git and should not be modified during building.

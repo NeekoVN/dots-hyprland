@@ -78,7 +78,35 @@ install-local-pkgbuild() {
   x pushd $location
 
   source ./PKGBUILD
-  x yay -S --sudoloop $installflags --asdeps "${depends[@]}"
+  
+  # Separate official repo packages from AUR packages
+  # This prioritizes non-AUR dependencies using pacman if possible
+  local official_pkgs=()
+  local aur_pkgs=()
+  
+  # Refresh sudo timestamp once to avoid multiple password prompts
+  sudo -v
+  
+  for pkg in "${depends[@]}"; do
+    # Check if package exists in official repos
+    # Use pacman -Si to check package info from sync database (more reliable than -Sp)
+    if pacman -Si "$pkg" &>/dev/null; then
+      official_pkgs+=("$pkg")
+    else
+      aur_pkgs+=("$pkg")
+    fi
+  done
+  
+  # Install official packages first with pacman
+  if [ ${#official_pkgs[@]} -gt 0 ]; then
+    x sudo pacman -S --asdeps $installflags "${official_pkgs[@]}"
+  fi
+  
+  # Install AUR packages with yay
+  if [ ${#aur_pkgs[@]} -gt 0 ]; then
+    x yay -S --sudoloop $installflags --asdeps "${aur_pkgs[@]}"
+  fi
+  
   # man makepkg:
   # -A, --ignorearch: Ignore a missing or incomplete arch field in the build script.
   # -s, --syncdeps: Install missing dependencies using pacman. When build-time or run-time dependencies are not found, pacman will try to resolve them.
